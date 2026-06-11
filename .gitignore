@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.production
+
+# TypeScript build output
+dist/
+
+# Uploaded files (keep folder via .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Misc
+*.tsbuildinfo

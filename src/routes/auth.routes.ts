@@ -1,0 +1,16 @@
+import { Router } from 'express';
+import * as auth from '../controllers/auth.controller';
+import { authMiddleware, optionalAuth } from '../middleware/auth';
+
+const router = Router();
+
+router.post('/register', auth.register);
+router.post('/login', auth.login);
+router.post('/send-otp', auth.sendOtp);
+router.post('/verify-otp', auth.verifyOtp);
+router.post('/forgot-password', auth.forgotPassword);
+router.post('/reset-password', auth.resetPassword);
+router.post('/forgot-username', auth.forgotUsername);
+router.post('/select-role', optionalAuth, auth.selectRole);
+
+export default router;
