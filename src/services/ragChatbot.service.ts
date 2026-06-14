@@ -1,6 +1,5 @@
 import Groq from 'groq-sdk';
 import { ChromaClient } from 'chromadb';
-import { pipeline } from '@xenova/transformers';
 import { config } from '../config';
 import { ChatMessage, ChatbotResponse } from '../types';
 
@@ -13,11 +12,8 @@ interface AskRagParams {
   history?: ChatMessage[];
 }
 
-type Embedder = Awaited<ReturnType<typeof pipeline>>;
-
 let groqClient: Groq | null = null;
 let chromaClient: ChromaClient | null = null;
-let embedder: Embedder | null = null;
 
 function getGroq(): Groq | null {
   if (!config.groqApiKey) return null;
@@ -32,13 +28,19 @@ function getChroma(): ChromaClient {
   return chromaClient;
 }
 
-async function getEmbedder(): Promise<Embedder> {
-  if (!embedder) {
-    console.log('[RAG] Loading embedding model Xenova/all-MiniLM-L6-v2...');
-    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-    console.log('[RAG] Embedding model ready');
-  }
-  return embedder;
+/** Generate embeddings using Groq API instead of local @xenova/transformers model */
+async function getEmbedding(text: string): Promise<number[]> {
+  const groq = getGroq();
+  if (!groq) throw new Error('Groq API key not configured');
+
+  // Groq supports nomic-embed-text-v1_5 for embeddings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const response = await (groq as any).embeddings.create({
+    model: 'nomic-embed-text-v1_5',
+    input: text,
+  });
+
+  return response.data[0].embedding as number[];
 }
 
 function normalizeMessages(messages: ChatMessage[]) {
@@ -71,10 +73,13 @@ async function askEmbeddedRag(params: AskRagParams): Promise<ChatbotResponse> {
   }
 
   const latestUserMessage = chatMessages[chatMessages.length - 1].content;
-  const model = await getEmbedder();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const output = await (model as any)(latestUserMessage, { pooling: 'mean', normalize: true });
-  const queryEmbedding = Array.from(output.data as Float32Array);
+  let queryEmbedding: number[];
+  try {
+    queryEmbedding = await getEmbedding(latestUserMessage);
+  } catch (embedErr) {
+    console.error('[RAG] Embedding failed:', (embedErr as Error).message);
+    return { success: false, message: 'Failed to process your message. Please try again.' };
+  }
 
   let contextChunks: string[] = [];
   try {
