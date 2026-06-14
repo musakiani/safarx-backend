@@ -1,33 +1,36 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
-import { config } from '../config';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
-const uploadDir = config.uploadDir;
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  },
+// Store files directly to Cloudinary (no local disk needed)
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'safarx',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    resource_type: 'image',
+  } as object,
 });
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: (_req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|gif/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const allowed = /jpeg|jpg|png|webp/;
+    const ext = allowed.test(file.originalname.toLowerCase());
     const mime = allowed.test(file.mimetype);
     cb(null, ext && mime);
   },
 });
 
-export function getFileUrl(filename: string): string {
-  return `/uploads/${filename}`;
+// Returns the Cloudinary URL stored in file.path by multer-storage-cloudinary
+export function getFileUrl(file: Express.Multer.File): string {
+  return (file as Express.Multer.File & { path: string }).path;
 }

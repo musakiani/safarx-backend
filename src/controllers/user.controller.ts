@@ -29,7 +29,7 @@ export async function updateMe(req: AuthRequest, res: Response, next: NextFuncti
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
     if (req.file) {
-      updates.profilePhoto = getFileUrl(req.file.filename);
+      updates.profilePhoto = getFileUrl(req.file);
     }
     const user = await User.findByIdAndUpdate(req.user!.userId, updates, { new: true }).select(
       '-password'

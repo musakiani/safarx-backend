@@ -16,7 +16,7 @@ export async function createDelivery(req: AuthRequest, res: Response, next: Next
   try {
     const photos: string[] = [];
     const files = req.files as Express.Multer.File[] | undefined;
-    files?.forEach((f) => photos.push(getFileUrl(f.filename)));
+    files?.forEach((f) => photos.push(getFileUrl(f)));
 
     const delivery = await DeliveryRequest.create({
       senderId: req.user!.userId,
@@ -143,7 +143,7 @@ export async function uploadDeliveryProof(req: AuthRequest, res: Response, next:
     }
 
     const files = req.files as Express.Multer.File[] | undefined;
-    const proofUrls = files?.map((f) => getFileUrl(f.filename)) || [];
+    const proofUrls = files?.map((f) => getFileUrl(f)) || [];
     delivery.proofPhotos.push(...proofUrls);
 
     if (canTransition(delivery.status, 'proof_submitted')) {

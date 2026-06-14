@@ -34,7 +34,7 @@ export async function submitKYC(req: AuthRequest, res: Response, next: NextFunct
           userId: req.user!.userId,
           kycProfileId: profile._id,
           type: typeMap[i] || 'other',
-          url: getFileUrl(files[i].filename),
+          url: getFileUrl(files[i]),
         });
       }
     }
