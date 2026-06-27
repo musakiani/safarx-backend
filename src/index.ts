@@ -18,6 +18,7 @@ import disputeRoutes from './routes/dispute.routes';
 import supportRoutes from './routes/support.routes';
 import adminRoutes from './routes/admin.routes';
 import chatbotRoutes from './routes/chatbot.routes';
+import pricingRoutes from './routes/pricing.routes';
 
 async function main() {
   await connectDB();
@@ -44,6 +45,7 @@ async function main() {
   app.use('/api/support', supportRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/chatbot', chatbotRoutes);
+  app.use('/api/pricing', pricingRoutes);
 
   app.use(errorHandler);
 
