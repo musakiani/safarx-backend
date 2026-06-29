@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
-import { ChromaClient } from 'chromadb';
+import fs from 'fs';
+import path from 'path';
 import { config } from '../config';
 import { ChatMessage, ChatbotResponse } from '../types';
 
@@ -12,8 +13,28 @@ interface AskRagParams {
   history?: ChatMessage[];
 }
 
+interface VectorDocument {
+  id: string;
+  text: string;
+  embedding: number[];
+  metadata: {
+    source: string;
+    chunk_index: number;
+    length: number;
+  };
+}
+
+interface VectorStore {
+  version: string;
+  created: string;
+  count: number;
+  documents: VectorDocument[];
+}
+
 let groqClient: Groq | null = null;
-let chromaClient: ChromaClient | null = null;
+let vectorStore: VectorStore | null = null;
+
+const VECTOR_STORE_PATH = path.resolve(__dirname, '../../knowledge_store.json');
 
 function getGroq(): Groq | null {
   if (!config.groqApiKey) return null;
@@ -21,26 +42,86 @@ function getGroq(): Groq | null {
   return groqClient;
 }
 
-function getChroma(): ChromaClient {
-  if (!chromaClient) {
-    chromaClient = new ChromaClient({ path: config.chromaUrl });
+function loadVectorStore(): VectorStore | null {
+  if (vectorStore) return vectorStore;
+  
+  try {
+    if (!fs.existsSync(VECTOR_STORE_PATH)) {
+      return null;
+    }
+    const data = fs.readFileSync(VECTOR_STORE_PATH, 'utf-8');
+    vectorStore = JSON.parse(data);
+    return vectorStore;
+  } catch (error) {
+    console.error('[RAG] Failed to load vector store:', error);
+    return null;
   }
-  return chromaClient;
 }
 
-/** Generate embeddings using Groq API instead of local @xenova/transformers model */
-async function getEmbedding(text: string): Promise<number[]> {
-  const groq = getGroq();
-  if (!groq) throw new Error('Groq API key not configured');
+/**
+ * Generate embedding vector from text
+ */
+function embed(text: string): number[] {
+  const normalized = text.toLowerCase().trim();
+  const words = normalized.split(/\s+/).slice(0, 100);
+  
+  const embedding = new Array(384).fill(0);
+  
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    for (let j = 0; j < word.length; j++) {
+      const charCode = word.charCodeAt(j);
+      const index = (charCode + i + j) % 384;
+      embedding[index] += (charCode / 255);
+    }
+  }
+  
+  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  return embedding.map(val => magnitude > 0 ? val / magnitude : 0);
+}
 
-  // Groq supports nomic-embed-text-v1_5 for embeddings
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const response = await (groq as any).embeddings.create({
-    model: 'nomic-embed-text-v1_5',
-    input: text,
-  });
+/**
+ * Calculate cosine similarity between two vectors
+ */
+function cosineSimilarity(vecA: number[], vecB: number[]): number {
+  let dotProduct = 0;
+  let magnitudeA = 0;
+  let magnitudeB = 0;
+  
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    magnitudeA += vecA[i] * vecA[i];
+    magnitudeB += vecB[i] * vecB[i];
+  }
+  
+  magnitudeA = Math.sqrt(magnitudeA);
+  magnitudeB = Math.sqrt(magnitudeB);
+  
+  if (magnitudeA === 0 || magnitudeB === 0) return 0;
+  return dotProduct / (magnitudeA * magnitudeB);
+}
 
-  return response.data[0].embedding as number[];
+/**
+ * Search for most similar documents
+ */
+function searchSimilar(query: string, topK = 5): string[] {
+  const store = loadVectorStore();
+  if (!store || store.documents.length === 0) {
+    return [];
+  }
+  
+  const queryEmbedding = embed(query);
+  
+  // Calculate similarities
+  const results = store.documents.map(doc => ({
+    text: doc.text,
+    similarity: cosineSimilarity(queryEmbedding, doc.embedding)
+  }));
+  
+  // Sort by similarity and take top K
+  results.sort((a, b) => b.similarity - a.similarity);
+  
+  return results.slice(0, topK).map(r => r.text);
 }
 
 function normalizeMessages(messages: ChatMessage[]) {
@@ -56,10 +137,45 @@ function normalizeMessages(messages: ChatMessage[]) {
     .filter((m) => m.content.length > 0);
 }
 
+async function checkVectorStore(): Promise<{ available: boolean; hasData: boolean }> {
+  try {
+    const store = loadVectorStore();
+    return {
+      available: store !== null,
+      hasData: store !== null && store.documents.length > 0
+    };
+  } catch {
+    return { available: false, hasData: false };
+  }
+}
+
 async function askEmbeddedRag(params: AskRagParams): Promise<ChatbotResponse> {
   const groq = getGroq();
   if (!groq) {
-    return { success: false, message: 'Groq API key is not configured (set GROQ_API_KEY in server/.env)' };
+    return {
+      success: false,
+      message: 'Chatbot is not configured. Please set GROQ_API_KEY in environment variables.',
+    };
+  }
+
+  // Check vector store availability
+  const storeStatus = await checkVectorStore();
+  if (!storeStatus.available) {
+    console.warn('[RAG] Vector store is not available. Run: npm run rag:ingest');
+    return {
+      success: false,
+      message:
+        'Knowledge base is not available. Please run npm run rag:ingest or contact support at support@safarx.pk',
+    };
+  }
+
+  if (!storeStatus.hasData) {
+    console.warn('[RAG] Vector store is empty. Run: npm run rag:ingest');
+    return {
+      success: false,
+      message:
+        'Knowledge base has not been initialized. Please run the ingestion script or contact support.',
+    };
   }
 
   const history = params.history || [];
@@ -69,71 +185,78 @@ async function askEmbeddedRag(params: AskRagParams): Promise<ChatbotResponse> {
   ]);
 
   if (chatMessages.length === 0) {
-    return { success: false, message: 'Empty message' };
+    return { success: false, message: 'Empty message received' };
   }
 
   const latestUserMessage = chatMessages[chatMessages.length - 1].content;
-  let queryEmbedding: number[];
-  try {
-    queryEmbedding = await getEmbedding(latestUserMessage);
-  } catch (embedErr) {
-    console.error('[RAG] Embedding failed:', (embedErr as Error).message);
-    return { success: false, message: 'Failed to process your message. Please try again.' };
-  }
 
+  // Search for similar documents
   let contextChunks: string[] = [];
   try {
-    const collection = await getChroma().getCollection({ name: 'safarx_kb' });
-    const results = await collection.query({
-      queryEmbeddings: [queryEmbedding],
-      nResults: 3,
+    contextChunks = searchSimilar(latestUserMessage, 5);
+    console.log(`[RAG] Retrieved ${contextChunks.length} relevant chunks for query: "${latestUserMessage.substring(0, 50)}..."`);
+  } catch (searchError) {
+    console.error('[RAG] Search failed:', (searchError as Error).message);
+    return {
+      success: false,
+      message: 'Failed to search knowledge base. Please try again.',
+    };
+  }
+
+  // Build context for LLM
+  const hasContext = contextChunks.length > 0;
+  const contextText = hasContext
+    ? contextChunks.join('\n\n---\n\n')
+    : 'No specific information found in knowledge base.';
+
+  const systemPrompt = `You are the SafarX Assistant, a helpful customer support chatbot for SafarX - Pakistan's AI-powered peer-to-peer intercity courier delivery platform.
+
+${
+  hasContext
+    ? `Use ONLY the following knowledge base information to answer the user's question:\n\n[KNOWLEDGE BASE]\n${contextText}\n[END KNOWLEDGE BASE]`
+    : 'The knowledge base did not return relevant information for this query.'
+}
+
+IMPORTANT RULES:
+1. Answer ONLY using information from the knowledge base above
+2. If the knowledge base does not contain the answer, say: "I don't have that specific information in my knowledge base. Please contact our support team at support@safarx.pk or call 0300-7232799 for assistance."
+3. NEVER make up information or guess
+4. Be conversational, friendly, and helpful
+5. Keep answers clear, concise, and to the point
+6. If asked about multiple things, address each point
+7. Use the same language the user is writing in (English or Urdu)
+8. Do not mention that you are using a "knowledge base" or "context" - just answer naturally`;
+
+  // Generate response using Groq
+  try {
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: systemPrompt }, ...chatMessages],
+      max_tokens: 600,
+      temperature: 0.7,
     });
-    if (results.documents?.[0]?.length) {
-      contextChunks = results.documents[0].filter(Boolean) as string[];
+
+    const reply = completion?.choices?.[0]?.message?.content?.trim();
+    if (!reply) {
+      console.error('[RAG] Empty response from Groq');
+      return { success: false, message: 'Failed to generate response. Please try again.' };
     }
-  } catch (chromaError) {
-    console.warn('[RAG] ChromaDB query failed:', (chromaError as Error).message);
+
+    console.log(`[RAG] Generated response successfully (${reply.length} chars, ${contextChunks.length} sources)`);
+
+    return {
+      success: true,
+      answer: reply,
+      sources: hasContext ? contextChunks.map((chunk) => chunk.substring(0, 200) + '...') : [],
+      conversationId: params.conversationId || `conv_${Date.now()}`,
+    };
+  } catch (groqError) {
+    console.error('[RAG] Groq API error:', (groqError as Error).message);
+    return {
+      success: false,
+      message: 'AI service is temporarily unavailable. Please try again in a moment.',
+    };
   }
-
-  const contextText =
-    contextChunks.length > 0
-      ? contextChunks.join('\n---\n')
-      : 'No specific information found. Advise user to contact support.';
-
-  const systemPrompt = `You are a helpful and friendly customer support assistant for SafarX — Pakistan's AI-powered peer-to-peer intercity courier delivery platform that connects senders with verified travelers for safe, fast, and affordable parcel delivery across Pakistan.
-
-Use ONLY the following knowledge base to answer the user's question:
-
-[CONTEXT START]
-${contextText}
-[CONTEXT END]
-
-Important rules you must follow:
-- Answer ONLY using the information in the context above
-- If the context does not contain the answer, say exactly: "I don't have that information right now. Please contact our support team at support@safarx.pk or call 0300-7232799."
-- Never make up or guess any information
-- Answer in the same language the user is writing in (English or Urdu)
-- Keep answers short, clear, and friendly
-- Do not mention that you are using a knowledge base or context`;
-
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
-    messages: [{ role: 'system', content: systemPrompt }, ...chatMessages],
-    max_tokens: 500,
-    temperature: 0.7,
-  });
-
-  const reply = completion?.choices?.[0]?.message?.content?.trim();
-  if (!reply) {
-    return { success: false, message: 'Empty response from chatbot' };
-  }
-
-  return {
-    success: true,
-    answer: reply,
-    sources: contextChunks,
-    conversationId: params.conversationId,
-  };
 }
 
 /** Fallback: proxy to external RAG service when GROQ_API_KEY is not set. */
@@ -173,5 +296,30 @@ export async function askRagChatbot(params: AskRagParams): Promise<ChatbotRespon
   if (config.groqApiKey) {
     return askEmbeddedRag(params);
   }
+  console.warn('[RAG] GROQ_API_KEY not set, falling back to external service');
   return askExternalRag(params);
+}
+
+// Initialize RAG system on server start
+export async function initializeRagSystem() {
+  if (!config.groqApiKey) {
+    console.log('[RAG] Skipping initialization - GROQ_API_KEY not configured');
+    return;
+  }
+
+  console.log('[RAG] Initializing RAG system...');
+  
+  // Check vector store
+  const storeStatus = await checkVectorStore();
+  if (!storeStatus.available) {
+    console.warn('[RAG] ⚠️  Vector store not found. Run: npm run rag:ingest');
+  } else if (!storeStatus.hasData) {
+    console.warn('[RAG] ⚠️  Vector store is empty. Run: npm run rag:ingest');
+  } else {
+    const store = loadVectorStore();
+    console.log(`[RAG] ✓ Vector store ready with ${store?.documents.length} chunks`);
+  }
+
+  console.log('[RAG] ✓ Using simple embedding algorithm (no external dependencies)');
+  console.log('[RAG] Initialization complete\n');
 }

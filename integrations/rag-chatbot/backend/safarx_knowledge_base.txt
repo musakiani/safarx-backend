@@ -1,0 +1,659 @@
+# SafarX Knowledge Base
+
+## About SafarX
+SafarX is Pakistan's AI-powered peer-to-peer intercity courier delivery platform. We connect senders with verified travelers for safe, fast, and affordable parcel delivery across Pakistan's major cities.
+
+### How SafarX Works
+SafarX connects people who need to send packages with travelers who are already making trips between cities. Senders post their parcel delivery requests, and travelers accept bookings for packages they can carry on their existing trips. This creates a win-win situation where senders get affordable and fast delivery, while travelers earn money from their regular journeys.
+
+### Key Benefits
+- Affordable: Lower prices than traditional courier services
+- Fast: Same-day or next-day delivery options
+- Safe: All travelers are KYC-verified with trust scores
+- Trackable: Real-time GPS tracking and status updates
+- Insured: Escrow payment system protects both parties
+
+---
+
+## KYC Verification
+
+### What is KYC?
+KYC (Know Your Customer) is an identity verification process required for all SafarX users. This ensures the safety and trustworthiness of our platform.
+
+### How to Complete KYC
+1. Go to your Profile
+2. Tap on "KYC Verification"
+3. Upload the following documents:
+   - CNIC Front: Clear photo of your national ID card front
+   - CNIC Back: Clear photo of your national ID card back
+   - Selfie with CNIC: Hold your CNIC next to your face and take a photo
+4. Submit the documents
+5. Wait for admin approval (usually 24-48 hours)
+
+### KYC Status
+- Not Started: You haven't uploaded documents yet
+- Pending: Documents are under review by our admin team
+- Approved: You're verified and can use all features
+- Rejected: Documents were rejected (check rejection reason and resubmit)
+
+### Important Notes
+- All users must complete KYC before posting trips or accepting bookings
+- Senders can post parcels without KYC approval
+- Only KYC-approved travelers can accept booking requests
+- Make sure photos are clear and readable
+- CNIC must be valid and not expired
+
+---
+
+## For Senders
+
+### How to Post a Package
+
+1. Go to Sender Dashboard
+2. Tap "Post a Package Request" button
+3. Fill in package details:
+   - Package Title (e.g., "Documents", "Gift Items", "Clothes")
+   - Description: What's inside the package
+   - Pickup Address: Where the package should be collected from
+   - Pickup City: Select from available cities
+   - Dropoff Address: Where the package should be delivered
+   - Dropoff City: Select destination city
+   - Package Weight: Enter weight in kilograms
+   - Package Size: Small, Medium, or Large
+   - Fragile: Yes/No
+   - Value: Approximate value of contents
+   - Preferred Date: When you want it delivered
+   - Offered Price: How much you're willing to pay
+4. Upload package photo (optional but recommended)
+5. Review details
+6. Submit package request
+
+### Finding Travelers
+After posting your package:
+1. View "Available Trips" matching your route
+2. See traveler profiles with trust scores and reviews
+3. Send booking requests to travelers you trust
+4. Wait for traveler acceptance
+
+### Booking Process for Senders
+1. Post Package Request
+2. Browse Available Trips or wait for travelers to find you
+3. Send Booking Request to a traveler
+4. Traveler accepts or rejects your request
+5. If accepted, make payment through the app
+6. Payment is held in escrow
+7. Traveler picks up your package
+8. Track delivery in real-time
+9. Confirm delivery once received
+10. Payment is released to traveler
+11. Leave a review
+
+### Package Pickup
+Once a booking is accepted and payment is made:
+- Traveler will contact you to arrange pickup time
+- Be available at the pickup address
+- Hand over the package to the traveler
+- Traveler will mark it as "Picked Up" in the app
+
+### Tracking Your Parcel
+1. Go to "My Parcels" from Sender Dashboard
+2. Tap on your active delivery
+3. View delivery timeline showing:
+   - Package Posted
+   - Booking Accepted
+   - Payment Made
+   - Picked Up
+   - In Transit
+   - Delivered
+4. See traveler's real-time location (when available)
+5. Contact traveler via in-app messaging
+
+### Payment and Pricing
+- You set your offered price when posting a package
+- Travelers see your offer and can accept it
+- Payment is made through Stripe (credit/debit card) or wallet balance
+- Payment is held in escrow until delivery is confirmed
+- Platform fee: 10% of booking amount
+- Refund: If booking is cancelled before pickup, you get full refund
+
+### Delivery Confirmation
+When the package arrives:
+1. Check the package condition
+2. Tap "Confirm Delivery" in the app
+3. Payment is released to the traveler
+4. Write a review for the traveler
+
+### Cancellation Policy for Senders
+- Before Traveler Acceptance: Free cancellation
+- After Acceptance, Before Pickup: Cancel with 20% fee
+- After Pickup: No cancellation, but you can file a dispute
+- Refunds processed within 5-7 business days
+
+---
+
+## For Travelers
+
+### How to Post a Trip
+
+1. Go to Traveler Dashboard
+2. Tap "Post a Trip" button
+3. Fill in trip details:
+   - Source City: Where you're starting from
+   - Destination City: Where you're going to
+   - Departure Date: When you're traveling
+   - Arrival Date: When you'll reach destination
+   - Available Capacity: How much weight you can carry (kg)
+   - Vehicle Type: Car, Bus, Train, etc.
+   - Trip Description: Any additional information
+4. Review and submit
+
+### Finding Package Requests
+After posting your trip:
+1. Go to "Booking Requests" to see sender requests
+2. Browse packages matching your route
+3. View package details and offered prices
+4. Accept or reject booking requests
+
+### Booking Process for Travelers
+1. Post Your Trip
+2. Receive booking requests from senders
+3. Review package details and sender profile
+4. Accept or reject the request
+5. Coordinate pickup with sender
+6. Pick up the package
+7. Mark as "Picked Up" in app
+8. Transport package safely
+9. Upload delivery proof photo
+10. Wait for sender confirmation
+11. Receive payment
+12. Leave a review for sender
+
+### Package Pickup for Travelers
+After accepting a booking:
+1. Contact the sender via in-app messaging
+2. Arrange a convenient pickup time
+3. Go to the pickup address
+4. Verify package contents match description
+5. Take a photo of the package
+6. Mark as "Picked Up" in the app
+
+### During Transit
+1. Keep the package safe and secure
+2. Do not open or tamper with contents
+3. Update delivery status if there are delays
+4. Respond to sender messages promptly
+
+### Delivery Process
+When you reach the destination:
+1. Contact the recipient
+2. Arrange delivery time and place
+3. Hand over the package
+4. Take a delivery proof photo (optional)
+5. Tap "Upload Proof" in the app
+6. Wait for sender to confirm delivery
+7. Once confirmed, your payment is released
+
+### Earnings and Payments
+- You receive the full booking amount minus platform fee (10%)
+- Payments are held in escrow until delivery is confirmed
+- Money is added to your wallet automatically
+- You can withdraw wallet balance to your bank account
+- Minimum withdrawal: PKR 500
+- Withdrawal processing: 1-3 business days
+
+### Trust Score and Reviews
+- New travelers start with 5.0 trust score
+- Your score updates based on customer reviews
+- Higher trust score = more booking requests
+- Good reviews help you earn more
+
+---
+
+## Payments and Wallet
+
+### Payment Methods
+SafarX accepts:
+- Credit/Debit Cards (via Stripe)
+- Wallet Balance
+
+### How Payment Works
+1. Sender makes payment after traveler accepts booking
+2. Payment is held in escrow (safe holding)
+3. Traveler picks up and delivers the package
+4. Sender confirms delivery
+5. Payment is released to traveler's wallet
+6. Traveler can withdraw to bank account
+
+### Wallet
+Your SafarX wallet:
+- Stores your earnings (for travelers)
+- Can be used to pay for deliveries (for senders)
+- View balance in "Wallet" section
+- Add money to wallet via card payment
+- Withdraw to bank account (minimum PKR 500)
+
+### Platform Commission
+SafarX charges 10% commission on each completed booking. This fee covers:
+- Payment processing
+- Platform maintenance
+- Customer support
+- Insurance and dispute resolution
+
+### Refund Policy
+Refunds are issued when:
+- Booking is cancelled before pickup (full refund)
+- Traveler cancels after acceptance (full refund minus processing fee)
+- Package is lost or damaged (case-by-case basis)
+- Dispute is resolved in sender's favor
+Refunds are processed within 5-7 business days to original payment method or wallet.
+
+---
+
+## Booking and Orders
+
+### My Orders (for Senders)
+View all your package delivery requests:
+- Active: Currently being delivered
+- Pending: Waiting for traveler acceptance
+- Completed: Successfully delivered
+- Cancelled: Cancelled bookings
+
+### My Bookings (for Travelers)
+View all bookings you've accepted:
+- Pending Pickup: Need to pick up the package
+- In Transit: Package is with you
+- Delivered: Waiting for sender confirmation
+- Completed: Payment received
+
+### Booking Status
+- Posted: Package request is live
+- Matched: Traveler has been assigned
+- Accepted: Traveler accepted the booking
+- Paid: Payment made and held in escrow
+- Picked Up: Traveler has collected the package
+- In Transit: Package is on the way
+- Proof Submitted: Traveler uploaded delivery proof
+- Delivered: Sender confirmed receipt
+- Completed: Transaction complete, payment released
+- Cancelled: Booking was cancelled
+- Disputed: Issue reported, under review
+
+---
+
+## Reviews and Ratings
+
+### How Reviews Work
+After a completed delivery:
+- Senders can review travelers
+- Travelers can review senders
+- Reviews include 1-5 star rating and optional comment
+- Reviews are visible on user profiles
+
+### Leaving a Review
+1. Go to completed booking
+2. Tap "Submit Review"
+3. Select star rating (1-5 stars)
+4. Write optional comment
+5. Submit review
+
+### Viewing Reviews
+- Senders: See reviews you wrote for travelers in "My Reviews"
+- Travelers: See reviews senders gave you in "My Reviews"
+- Reviews affect trust scores
+
+### Trust Score
+- Calculated from average of all reviews
+- Starts at 5.0 for new users
+- Updated after each new review
+- Visible to all users
+- Higher score = more trust and bookings
+
+---
+
+## Tracking and GPS
+
+### Real-Time Tracking
+For active deliveries:
+- Senders can see traveler's location (when traveler shares it)
+- View delivery timeline with status updates
+- Receive push notifications for status changes
+
+### Delivery Timeline
+Track your package through these stages:
+1. Package Posted
+2. Booking Accepted
+3. Payment Completed
+4. Package Picked Up
+5. In Transit
+6. Proof Submitted
+7. Delivery Confirmed
+8. Completed
+
+### Location Sharing
+- Travelers can share live location during transit
+- Location updates every few minutes
+- Helps senders track their packages in real-time
+- Can be disabled by traveler for privacy
+
+---
+
+## Messages and Communication
+
+### In-App Messaging
+SafarX provides built-in messaging between senders and travelers:
+- Go to "Messages" from your dashboard
+- View all your conversations
+- Chat with travelers (for senders) or senders (for travelers)
+- Coordinate pickup and delivery details
+- Messages are private and secure
+
+### When to Message
+- Arrange pickup time and location
+- Share contact details if needed
+- Notify about delays or changes
+- Confirm delivery details
+- Resolve minor issues
+
+### SafarX Assistant Chatbot
+Have questions? Ask the SafarX Assistant:
+- Available 24/7 in the app
+- Tap the chat icon to open
+- Get instant answers about:
+  - How to use SafarX
+  - KYC verification
+  - Posting packages/trips
+  - Payments and wallet
+  - Tracking deliveries
+  - FAQs
+
+---
+
+## Disputes and Support
+
+### When to File a Dispute
+File a dispute if:
+- Package was not delivered
+- Package contents are damaged or missing
+- Wrong package was delivered
+- Traveler is unresponsive after pickup
+- Payment issues
+
+### How to File a Dispute
+1. Go to the booking details
+2. Tap "Report an Issue" or "File Dispute"
+3. Select dispute reason:
+   - Not Delivered
+   - Damaged Package
+   - Missing Items
+   - Wrong Package
+   - Other
+4. Provide details and upload photos if applicable
+5. Submit dispute
+6. Wait for admin review (24-48 hours)
+
+### Dispute Resolution Process
+1. Admin reviews dispute and evidence
+2. Both parties may be contacted for information
+3. Decision is made based on evidence
+4. Refund or compensation issued if applicable
+5. Trust scores may be adjusted
+
+### Contacting Support
+For help:
+- Email: support@safarx.pk
+- Phone: 0300-7232799
+- In-app: Go to Profile > Help Center
+- Available: 9 AM - 9 PM (Mon-Sat)
+
+### Help Center
+Access FAQs and guides:
+- Go to Profile > Help Center
+- Browse common questions and answers
+- Learn about using SafarX features
+- Find contact information
+
+---
+
+## Safety and Security
+
+### Safety Guidelines
+For Senders:
+- Verify traveler's KYC status and trust score
+- Read traveler reviews before booking
+- Pack items securely
+- Don't send prohibited items (weapons, illegal items, etc.)
+- Keep valuable items insured
+- Use app messaging only
+
+For Travelers:
+- Verify package contents before accepting
+- Don't accept suspicious packages
+- Report any safety concerns immediately
+- Don't share personal banking details with senders
+- Use in-app payment system only
+
+### Prohibited Items
+Do NOT send/carry:
+- Weapons, explosives, ammunition
+- Illegal drugs or substances
+- Hazardous materials
+- Live animals
+- Perishable food (unless agreed upon)
+- Stolen goods
+- Currency above legal limits
+
+### Insurance and Protection
+- All payments held in secure escrow
+- Personal data encrypted
+- KYC verification for all users
+- Trust score system
+- Dispute resolution process
+- 24/7 monitoring and support
+
+---
+
+## Account Management
+
+### Profile Settings
+Manage your account:
+- Edit Profile: Update name, phone, email
+- Profile Photo: Upload/change your photo
+- Addresses: Save frequently used addresses
+- Language: Switch between English/Urdu
+- Notifications: Customize alert preferences
+
+### Notification Settings
+Control what notifications you receive:
+- Booking Updates: New requests, acceptances, cancellations
+- Delivery Updates: Pickup, in-transit, delivered
+- Payment Updates: Payment received, wallet balance
+- Messages: New messages from users
+- Marketing: Promotions and offers
+
+### Language
+SafarX supports:
+- English
+- Urdu
+Change language from Profile > Language Settings
+
+### Logout
+To logout:
+1. Go to Profile
+2. Scroll to bottom
+3. Tap "Logout"
+4. Confirm logout
+
+---
+
+## Frequently Asked Questions
+
+Q: Is SafarX available in my city?
+A: SafarX currently operates in major Pakistani cities including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Quetta, Sialkot, and Gujranwala. More cities coming soon!
+
+Q: How long does KYC approval take?
+A: KYC approval typically takes 24-48 hours. Make sure to upload clear, readable photos of your CNIC and selfie.
+
+Q: Can I send fragile items?
+A: Yes, but mark your package as "Fragile" when posting. Pack items securely and discuss with the traveler before they accept.
+
+Q: What if my package is lost or damaged?
+A: File a dispute immediately through the app. Our admin team will review and resolve based on evidence provided.
+
+Q: How do I withdraw money from my wallet?
+A: Go to Wallet > Withdraw. Enter amount (minimum PKR 500), provide bank details, and confirm. Money arrives in 1-3 business days.
+
+Q: Can I cancel a booking?
+A: Yes, before the traveler picks up the package. Cancellation fees may apply after traveler acceptance. See cancellation policy for details.
+
+Q: Is my payment safe?
+A: Yes, all payments are processed through Stripe (international standard) and held in escrow until delivery is confirmed.
+
+Q: Do I need to complete KYC to send packages?
+A: Senders can post packages without KYC, but travelers must be KYC-approved to accept bookings.
+
+Q: How is the trust score calculated?
+A: Trust score is the average of all ratings you receive from other users. It starts at 5.0 and updates with each new review.
+
+Q: Can I track my package in real-time?
+A: Yes, travelers can share their live location, and you can track the delivery status through the app timeline.
+
+Q: What payment methods are accepted?
+A: Credit/debit cards via Stripe and wallet balance. We're working on adding more payment options.
+
+Q: What happens if the traveler doesn't deliver my package?
+A: File a dispute. If the traveler is found at fault, you'll receive a full refund and the traveler's trust score will be impacted.
+
+---
+
+## Contact Information
+
+### Customer Support
+- Email: support@safarx.pk
+- Phone: 0300-7232799
+- Hours: 9 AM - 9 PM (Monday to Saturday)
+
+### Business Inquiries
+- Email: info@safarx.pk
+
+### Report Issues
+- Use in-app "File Dispute" feature
+- Or email: disputes@safarx.pk
+
+### Social Media
+- Website: www.safarx.pk
+- Facebook: SafarX Pakistan
+- Instagram: @safarxpk
+
+---
+
+## Terms and Policies
+
+### Platform Rules
+- Users must be 18+ years old
+- Valid CNIC required for KYC
+- No fraudulent activity
+- Respect other users
+- Follow safety guidelines
+- Report suspicious activity
+
+### Privacy
+- Your data is encrypted and secure
+- We don't share personal information
+- Location data used only for tracking (with permission)
+- Read full Privacy Policy in app settings
+
+### User Responsibilities
+Senders:
+- Provide accurate package information
+- Pack items securely
+- Be available for pickup
+- Confirm delivery promptly
+- Pay agreed amount
+
+Travelers:
+- Maintain KYC status
+- Transport packages safely
+- Communicate with senders
+- Deliver on time
+- Provide delivery proof
+
+---
+
+## Troubleshooting
+
+### App Issues
+Problem: Can't login
+Solution: Check your email/username and password. Use "Forgot Password" if needed.
+
+Problem: KYC documents not uploading
+Solution: Ensure photos are clear, under 5MB, in JPG/PNG format. Check internet connection.
+
+Problem: Payment failed
+Solution: Check card details, ensure sufficient balance. Try a different card or contact your bank.
+
+Problem: Can't see available trips
+Solution: Refresh the page. Check if there are active trips matching your route and dates.
+
+Problem: Messages not sending
+Solution: Check internet connection. Refresh the app. Contact support if issue persists.
+
+Problem: Wallet withdrawal pending
+Solution: Withdrawals take 1-3 business days. If delayed beyond 5 days, contact support.
+
+### Common Solutions
+- Restart the app
+- Check internet connection
+- Update app to latest version
+- Clear app cache
+- Logout and login again
+- Contact support if nothing works
+
+---
+
+## Getting Started Guide
+
+### For New Senders:
+1. Download and install SafarX app
+2. Create account with email and phone
+3. Complete profile setup
+4. Post your first package request
+5. Browse available travelers
+6. Send booking request
+7. Make payment when accepted
+8. Track delivery
+9. Confirm receipt
+10. Leave review
+
+### For New Travelers:
+1. Download and install SafarX app
+2. Create account with email and phone
+3. Complete KYC verification (mandatory)
+4. Wait for KYC approval (24-48 hours)
+5. Post your first trip
+6. Accept booking requests
+7. Pick up packages
+8. Deliver safely
+9. Upload proof
+10. Receive payment and reviews
+
+### Tips for Success
+Senders:
+- Provide detailed package descriptions
+- Offer fair prices
+- Choose travelers with high trust scores
+- Pack items securely
+- Communicate clearly
+- Confirm delivery promptly
+
+Travelers:
+- Keep your KYC documents updated
+- Post trips regularly
+- Accept bookings promptly
+- Communicate with senders
+- Handle packages with care
+- Be professional and friendly
+- Build your trust score through good service
+
+---
+
+This knowledge base is regularly updated. For the latest information, visit www.safarx.pk or contact support@safarx.pk

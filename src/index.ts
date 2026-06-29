@@ -3,6 +3,7 @@ import cors from 'cors';
 import { connectDB } from './config/db';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
+import { initializeRagSystem } from './services/ragChatbot.service';
 
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
@@ -51,6 +52,10 @@ async function main() {
 
   app.listen(config.port, '0.0.0.0', () => {
     console.log(`SafarX server running on http://0.0.0.0:${config.port}`);
+    // Initialize RAG system after server starts
+    initializeRagSystem().catch((err) =>
+      console.error('[RAG] Initialization failed:', err.message)
+    );
   });
 }
 

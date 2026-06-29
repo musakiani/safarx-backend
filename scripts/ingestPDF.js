@@ -1,81 +1,152 @@
 /**
- * Ingest SafarX knowledge-base PDF into ChromaDB.
- * Run once after starting ChromaDB: npm run rag:ingest
+ * Ingest SafarX knowledge-base into JSON-based vector store.
+ * No external dependencies - just files!
+ * Run: npm run rag:ingest
  */
 const fs = require('fs');
 const path = require('path');
 const pdf = require('pdf-parse');
-const { pipeline } = require('@xenova/transformers');
-const { ChromaClient } = require('chromadb');
+require('dotenv').config();
 
-const CHROMA_HOST = process.env.CHROMA_HOST || 'localhost';
-const CHROMA_PORT = process.env.CHROMA_PORT || '8000';
-const DEFAULT_PDF = path.resolve(
-  __dirname,
-  '../integrations/rag-chatbot/backend/safarx_knowledge_base_en.pdf'
-);
+const KNOWLEDGE_DIR = path.resolve(__dirname, '../integrations/rag-chatbot/backend');
+const PDF_PATH = path.join(KNOWLEDGE_DIR, 'safarx_knowledge_base_en.pdf');
+const TXT_PATH = path.join(KNOWLEDGE_DIR, 'safarx_knowledge_base.txt');
+const VECTOR_STORE_PATH = path.resolve(__dirname, '../knowledge_store.json');
 
-async function ingestPDF() {
-  const pdfPath = process.argv[2] || process.env.RAG_KNOWLEDGE_PDF || DEFAULT_PDF;
-
-  if (!fs.existsSync(pdfPath)) {
-    console.error(`PDF not found: ${pdfPath}`);
-    console.error('Place safarx_knowledge_base_en.pdf in server/integrations/rag-chatbot/backend/');
-    process.exit(1);
+/**
+ * Generate embedding vector from text
+ */
+function embed(text) {
+  const normalized = text.toLowerCase().trim();
+  const words = normalized.split(/\s+/).slice(0, 100);
+  
+  const embedding = new Array(384).fill(0);
+  
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    for (let j = 0; j < word.length; j++) {
+      const charCode = word.charCodeAt(j);
+      const index = (charCode + i + j) % 384;
+      embedding[index] += (charCode / 255);
+    }
   }
-
-  console.log(`Reading PDF: ${pdfPath}`);
-  const dataBuffer = fs.readFileSync(pdfPath);
-  const pdfData = await pdf(dataBuffer);
-  const text = pdfData.text;
-  console.log(`Extracted ${text.length} characters`);
-
-  const rawChunks = text.split('\n\n');
-  const chunks = rawChunks.map((c) => c.trim()).filter((c) => c.length >= 50);
-  console.log(`Created ${chunks.length} chunks`);
-
-  if (chunks.length === 0) {
-    console.error('No valid chunks found');
-    process.exit(1);
-  }
-
-  console.log('Loading embedding model...');
-  const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-
-  const embeddings = [];
-  for (let i = 0; i < chunks.length; i++) {
-    console.log(`Embedding chunk ${i + 1}/${chunks.length}`);
-    const output = await extractor(chunks[i], { pooling: 'mean', normalize: true });
-    embeddings.push(Array.from(output.data));
-  }
-
-  const chromaUrl = `http://${CHROMA_HOST}:${CHROMA_PORT}`;
-  console.log(`Connecting to ChromaDB at ${chromaUrl}`);
-  const client = new ChromaClient({ path: chromaUrl });
-
-  try {
-    await client.deleteCollection({ name: 'safarx_kb' });
-    console.log('Deleted existing safarx_kb collection');
-  } catch {
-    console.log('No existing collection to delete');
-  }
-
-  const collection = await client.createCollection({ name: 'safarx_kb' });
-  await collection.add({
-    ids: chunks.map((_, i) => `chunk_${i}`),
-    embeddings,
-    documents: chunks,
-    metadatas: chunks.map((chunk, i) => ({
-      source: path.basename(pdfPath),
-      chunk_index: i,
-      length: chunk.length,
-    })),
-  });
-
-  console.log(`Done! ${chunks.length} chunks added to safarx_kb`);
+  
+  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  return embedding.map(val => magnitude > 0 ? val / magnitude : 0);
 }
 
-ingestPDF().catch((err) => {
+/**
+ * Split text into semantic chunks
+ */
+function intelligentChunk(text, maxChunkSize = 800) {
+  const sections = text.split(/(?=^#{1,3}\s)/gm);
+  const chunks = [];
+
+  for (const section of sections) {
+    const trimmed = section.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.length <= maxChunkSize) {
+      chunks.push(trimmed);
+    } else {
+      const paragraphs = trimmed.split('\n\n');
+      let currentChunk = '';
+
+      for (const para of paragraphs) {
+        if ((currentChunk + '\n\n' + para).length <= maxChunkSize) {
+          currentChunk = currentChunk ? currentChunk + '\n\n' + para : para;
+        } else {
+          if (currentChunk) chunks.push(currentChunk.trim());
+          currentChunk = para;
+        }
+      }
+
+      if (currentChunk) chunks.push(currentChunk.trim());
+    }
+  }
+
+  return chunks.filter((c) => c.length >= 50);
+}
+
+async function extractText() {
+  if (fs.existsSync(PDF_PATH)) {
+    console.log(`Reading PDF: ${PDF_PATH}`);
+    const dataBuffer = fs.readFileSync(PDF_PATH);
+    const pdfData = await pdf(dataBuffer);
+    return { text: pdfData.text, source: 'PDF' };
+  }
+
+  if (fs.existsSync(TXT_PATH)) {
+    console.log(`Reading TXT: ${TXT_PATH}`);
+    const text = fs.readFileSync(TXT_PATH, 'utf-8');
+    return { text, source: 'TXT' };
+  }
+
+  throw new Error(`Knowledge base not found.`);
+}
+
+async function ingestKnowledgeBase() {
+  try {
+    // Check Groq API key
+    if (!process.env.GROQ_API_KEY) {
+      console.error('\n❌ GROQ_API_KEY not found in .env file');
+      console.error('Please add your Groq API key to .env');
+      process.exit(1);
+    }
+
+    const { text, source } = await extractText();
+    console.log(`Extracted ${text.length} characters from ${source}`);
+
+    const chunks = intelligentChunk(text);
+    console.log(`Created ${chunks.length} semantic chunks`);
+
+    if (chunks.length === 0) {
+      console.error('No valid chunks found');
+      process.exit(1);
+    }
+
+    console.log('\nGenerating embeddings...');
+    const documents = chunks.map((chunk, i) => {
+      const embedding = embed(chunk);
+      if ((i + 1) % 10 === 0 || i === chunks.length - 1) {
+        console.log(`  Progress: ${i + 1}/${chunks.length} chunks`);
+      }
+      return {
+        id: `chunk_${i}`,
+        text: chunk,
+        embedding: embedding,
+        metadata: {
+          source: source === 'PDF' ? 'safarx_knowledge_base_en.pdf' : 'safarx_knowledge_base.txt',
+          chunk_index: i,
+          length: chunk.length,
+        }
+      };
+    });
+
+    // Save to JSON file
+    console.log(`\nSaving to ${VECTOR_STORE_PATH}...`);
+    const vectorStore = {
+      version: '1.0',
+      created: new Date().toISOString(),
+      count: documents.length,
+      documents: documents
+    };
+
+    fs.writeFileSync(VECTOR_STORE_PATH, JSON.stringify(vectorStore, null, 2), 'utf-8');
+
+    console.log(`\n✅ SUCCESS! Added ${chunks.length} chunks to vector store`);
+    console.log(`\nData stored in: ${VECTOR_STORE_PATH}`);
+    console.log(`File size: ${(fs.statSync(VECTOR_STORE_PATH).size / 1024 / 1024).toFixed(2)} MB`);
+    console.log('\n✓ Knowledge base is ready!');
+    console.log('\nNext step: npm run dev\n');
+  } catch (err) {
+    console.error('\n❌ ERROR:', err.message);
+    console.error('\nFull error:', err);
+    process.exit(1);
+  }
+}
+
+ingestKnowledgeBase().catch((err) => {
   console.error(err);
   process.exit(1);
 });
