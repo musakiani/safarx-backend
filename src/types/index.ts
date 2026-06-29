@@ -1,4 +1,4 @@
-export type UserRole = 'sender' | 'traveler' | 'admin';
+export type UserRole = 'sender' | 'traveler' | 'both' | 'admin';
 export type KYCStatus = 'not_started' | 'pending' | 'approved' | 'rejected';
 export type DeliveryStatus =
   | 'pending_pickup'

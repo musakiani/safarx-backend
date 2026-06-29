@@ -89,3 +89,32 @@ export async function getBookingReviewStatus(req: AuthRequest, res: Response, ne
     next(err);
   }
 }
+
+export async function getMyReviews(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.userId;
+    const role = req.user!.activeRole || req.user!.role;
+
+    let reviews;
+    
+    if (role === 'traveler') {
+      // Traveler: get reviews they received (where they are the reviewee)
+      reviews = await Review.find({ revieweeId: userId })
+        .populate('reviewerId', 'fullName profilePhoto')
+        .sort({ createdAt: -1 });
+    } else {
+      // Sender: get reviews they wrote (where they are the reviewer)
+      reviews = await Review.find({ reviewerId: userId })
+        .populate('revieweeId', 'fullName profilePhoto')
+        .sort({ createdAt: -1 });
+    }
+
+    res.json({
+      success: true,
+      reviews,
+      role,
+    });
+  } catch (err) {
+    next(err);
+  }
+}

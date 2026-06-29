@@ -90,6 +90,7 @@ export async function login(req: AuthRequest, res: Response, next: NextFunction)
         fullName: user.fullName,
         role: user.role,
         activeRole: user.activeRole || user.role,
+        canSwitchRoles: user.canSwitchRoles || user.role === 'both',
         kycStatus: user.kycStatus,
         kycRejectionReason: user.kycRejectionReason,
         isAdmin: user.isAdmin,
@@ -198,9 +199,10 @@ export async function forgotUsername(req: AuthRequest, res: Response, next: Next
 export async function selectRole(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { role, email, password } = req.body;
-    if (!['sender', 'traveler'].includes(role)) throw new AppError('Invalid role');
+    if (!['sender', 'traveler', 'both'].includes(role)) throw new AppError('Invalid role');
 
     let userId = req.user?.userId;
+    let isInitialSetup = false;
 
     // Fallback: if no token, allow email+password auth for role selection right after registration
     if (!userId && email && password) {
@@ -211,15 +213,50 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
       const valid = await import('../services/auth.service').then(m => m.comparePassword(password, user.password));
       if (!valid) throw new AppError('Invalid credentials', 401);
       userId = user._id.toString();
+      isInitialSetup = true;
     }
 
     if (!userId) throw new AppError('Unauthorized', 401);
 
+    const existingUser = await User.findById(userId);
+    if (!existingUser) throw new AppError('User not found', 404);
+
+    // If this is initial role setup during registration
+    if (isInitialSetup) {
+      const canSwitch = role === 'both';
+      const initialActiveRole = role === 'both' ? 'sender' : role;
+      
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { 
+          role, 
+          activeRole: initialActiveRole,
+          canSwitchRoles: canSwitch 
+        },
+        { new: true }
+      ).select('-password');
+      
+      res.json({ success: true, user });
+      return;
+    }
+
+    // If user is trying to switch roles after registration
+    // Check if they have permission to switch
+    if (!existingUser.canSwitchRoles && existingUser.role !== 'both') {
+      throw new AppError('You do not have permission to switch roles. Your account is locked to ' + existingUser.role + ' mode.', 403);
+    }
+
+    // Only allow switching between sender and traveler, not changing the base role
+    if (!['sender', 'traveler'].includes(role)) {
+      throw new AppError('Invalid role for switching', 400);
+    }
+
     const user = await User.findByIdAndUpdate(
       userId,
-      { role, activeRole: role },
+      { activeRole: role },
       { new: true }
     ).select('-password');
+    
     res.json({ success: true, user });
   } catch (err) {
     next(err);

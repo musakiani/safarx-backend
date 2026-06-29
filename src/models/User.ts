@@ -9,6 +9,7 @@ export interface IUser extends Document {
   phone?: string;
   role: UserRole;
   activeRole?: UserRole;
+  canSwitchRoles: boolean;
   profilePhoto?: string;
   kycStatus: KYCStatus;
   kycRejectionReason?: string;
@@ -41,8 +42,9 @@ const UserSchema = new Schema<IUser>(
     password: { type: String, required: true },
     fullName: { type: String, required: true },
     phone: String,
-    role: { type: String, enum: ['sender', 'traveler', 'admin'], default: 'sender' },
+    role: { type: String, enum: ['sender', 'traveler', 'both', 'admin'], default: 'sender' },
     activeRole: { type: String, enum: ['sender', 'traveler', 'admin'] },
+    canSwitchRoles: { type: Boolean, default: false },
     profilePhoto: String,
     kycStatus: {
       type: String,
