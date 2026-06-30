@@ -220,8 +220,9 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
     if (!existingUser) throw new AppError('User not found', 404);
 
     // CRITICAL: Check if this is the FIRST TIME the user is setting their role
-    // A new user has no role set yet (null, undefined, or empty string)
-    const isFirstTimeRoleSelection = !existingUser.role || existingUser.role === '';
+    // For new users during registration flow, we check if they're selecting a role
+    // that differs from the default 'sender' or if activeRole is not yet set
+    const isFirstTimeRoleSelection = !existingUser.activeRole && existingUser.role === 'sender';
 
     if (isFirstTimeRoleSelection) {
       // First time role selection - allow any role choice without restrictions
