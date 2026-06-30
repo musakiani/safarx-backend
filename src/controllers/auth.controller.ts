@@ -202,7 +202,6 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
     if (!['sender', 'traveler', 'both'].includes(role)) throw new AppError('Invalid role');
 
     let userId = req.user?.userId;
-    let isInitialSetup = false;
 
     // Fallback: if no token, allow email+password auth for role selection right after registration
     if (!userId && email && password) {
@@ -213,7 +212,6 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
       const valid = await import('../services/auth.service').then(m => m.comparePassword(password, user.password));
       if (!valid) throw new AppError('Invalid credentials', 401);
       userId = user._id.toString();
-      isInitialSetup = true;
     }
 
     if (!userId) throw new AppError('Unauthorized', 401);
@@ -221,8 +219,12 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
     const existingUser = await User.findById(userId);
     if (!existingUser) throw new AppError('User not found', 404);
 
-    // If this is initial role setup during registration
-    if (isInitialSetup) {
+    // CRITICAL: Check if this is the FIRST TIME the user is setting their role
+    // A new user has no role set yet (null, undefined, or empty string)
+    const isFirstTimeRoleSelection = !existingUser.role || existingUser.role === '';
+
+    if (isFirstTimeRoleSelection) {
+      // First time role selection - allow any role choice without restrictions
       const canSwitch = role === 'both';
       const initialActiveRole = role === 'both' ? 'sender' : role;
       
@@ -240,7 +242,7 @@ export async function selectRole(req: AuthRequest, res: Response, next: NextFunc
       return;
     }
 
-    // If user is trying to switch roles after registration
+    // User already has a role assigned - apply role switching restrictions
     // Check if they have permission to switch
     if (!existingUser.canSwitchRoles && existingUser.role !== 'both') {
       throw new AppError('You do not have permission to switch roles. Your account is locked to ' + existingUser.role + ' mode.', 403);
