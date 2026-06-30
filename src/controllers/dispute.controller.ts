@@ -1,14 +1,66 @@
 import { Response, NextFunction } from 'express';
-import { Dispute } from '../models';
+import { Dispute, Booking, DeliveryRequest, User } from '../models';
 import { AuthRequest } from '../types/authRequest';
+import { AppError } from '../middleware/errorHandler';
 
 export async function createDispute(req: AuthRequest, res: Response, next: NextFunction) {
   try {
+    const { bookingId, reason, description } = req.body;
+
+    if (!bookingId) {
+      throw new AppError('Booking ID is required', 400);
+    }
+
+    if (!reason || reason.trim() === '') {
+      throw new AppError('Dispute reason is required', 400);
+    }
+
+    if (reason.trim().length < 10) {
+      throw new AppError('Please provide more details about your issue', 400);
+    }
+
+    // Check if booking exists
+    const booking = await Booking.findById(bookingId)
+      .populate('senderId', 'fullName')
+      .populate('travelerId', 'fullName');
+    
+    if (!booking) {
+      throw new AppError('Booking not found', 404);
+    }
+
+    // Verify the user is the sender of this booking
+    if (booking.senderId._id.toString() !== req.user!.userId) {
+      throw new AppError('You can only submit disputes for your own bookings', 403);
+    }
+
+    // Check if a dispute already exists for this booking
+    const existingDispute = await Dispute.findOne({ bookingId });
+    if (existingDispute) {
+      throw new AppError('A dispute has already been submitted for this booking', 409);
+    }
+
+    // Get delivery information
+    const delivery = await DeliveryRequest.findOne({ bookingId });
+
+    // Create the dispute
     const dispute = await Dispute.create({
-      ...req.body,
+      bookingId,
       raisedBy: req.user!.userId,
+      reason: reason.trim(),
+      description: description?.trim() || reason.trim(),
+      status: 'open',
     });
-    res.status(201).json({ success: true, dispute });
+
+    // Populate the created dispute
+    const populatedDispute = await Dispute.findById(dispute._id)
+      .populate('bookingId')
+      .populate('raisedBy', 'fullName email');
+
+    res.status(201).json({ 
+      success: true, 
+      dispute: populatedDispute,
+      message: 'Dispute submitted successfully'
+    });
   } catch (err) {
     next(err);
   }
