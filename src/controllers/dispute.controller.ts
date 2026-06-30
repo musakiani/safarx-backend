@@ -69,9 +69,20 @@ export async function createDispute(req: AuthRequest, res: Response, next: NextF
 export async function getDisputes(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const disputes = await Dispute.find()
-      .populate('bookingId')
-      .populate('raisedBy', 'fullName email')
+      .populate({
+        path: 'bookingId',
+        populate: [
+          { path: 'senderId', select: 'fullName email phone' },
+          { path: 'travelerId', select: 'fullName email phone' },
+          { 
+            path: 'deliveryId',
+            select: 'title description pickupAddress dropoffAddress photos status'
+          }
+        ]
+      })
+      .populate('raisedBy', 'fullName email phone')
       .sort({ createdAt: -1 });
+    
     res.json({ success: true, disputes });
   } catch (err) {
     next(err);
@@ -81,6 +92,106 @@ export async function getDisputes(req: AuthRequest, res: Response, next: NextFun
 export async function updateDispute(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const dispute = await Dispute.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, dispute });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resolveDispute(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const { resolution } = req.body;
+
+    const dispute = await Dispute.findById(id);
+    if (!dispute) {
+      throw new AppError('Dispute not found', 404);
+    }
+
+    dispute.status = 'resolved';
+    if (resolution) {
+      dispute.resolution = resolution;
+    }
+    await dispute.save();
+
+    const populatedDispute = await Dispute.findById(id)
+      .populate({
+        path: 'bookingId',
+        populate: [
+          { path: 'senderId', select: 'fullName email' },
+          { path: 'travelerId', select: 'fullName email' }
+        ]
+      })
+      .populate('raisedBy', 'fullName email');
+
+    res.json({ 
+      success: true, 
+      dispute: populatedDispute,
+      message: 'Dispute resolved successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function rejectDispute(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const dispute = await Dispute.findById(id);
+    if (!dispute) {
+      throw new AppError('Dispute not found', 404);
+    }
+
+    dispute.status = 'closed';
+    if (reason) {
+      dispute.resolution = `Rejected: ${reason}`;
+    }
+    await dispute.save();
+
+    const populatedDispute = await Dispute.findById(id)
+      .populate({
+        path: 'bookingId',
+        populate: [
+          { path: 'senderId', select: 'fullName email' },
+          { path: 'travelerId', select: 'fullName email' }
+        ]
+      })
+      .populate('raisedBy', 'fullName email');
+
+    res.json({ 
+      success: true, 
+      dispute: populatedDispute,
+      message: 'Dispute rejected successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getDisputeById(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+
+    const dispute = await Dispute.findById(id)
+      .populate({
+        path: 'bookingId',
+        populate: [
+          { path: 'senderId', select: 'fullName email phone' },
+          { path: 'travelerId', select: 'fullName email phone' },
+          { 
+            path: 'deliveryId',
+            select: 'title description pickupAddress dropoffAddress photos status timeline'
+          }
+        ]
+      })
+      .populate('raisedBy', 'fullName email phone');
+
+    if (!dispute) {
+      throw new AppError('Dispute not found', 404);
+    }
+
     res.json({ success: true, dispute });
   } catch (err) {
     next(err);
